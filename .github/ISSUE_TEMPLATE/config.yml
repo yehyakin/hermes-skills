@@ -1,0 +1,29 @@
+# GitHub Issue Templates Configuration
+# https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/configuring-issue-templates-for-your-repository
+
+blank_issues_enabled: false  # 禁用空白 Issue，强制使用模板
+
+contact_links:
+  - name: 📖 文档
+    url: https://github.com/yehyakin/hermes-skills#readme
+    about: 查看完整文档和使用指南
+  - name: 💬 讨论区
+    url: https://github.com/yehyakin/hermes-skills/discussions
+    about: 提出问题、分享想法、与其他贡献者交流
+  - name: 🐛 已存在的问题
+    url: https://github.com/yehyakin/hermes-skills/issues
+    about: 查看当前打开的 Issue
+
+categories:
+  - title: "🐛 Bug 报告"
+    labels: ["bug"]
+    template: bug_report.md
+  - title: "💡 功能建议"
+    labels: ["enhancement"]
+    template: feature_request.md
+  - title: "📖 文档改进"
+    labels: ["documentation"]
+    template: bug_report.md
+  - title: "❓ 问题咨询"
+    labels: ["question"]
+    template: bug_report.md
