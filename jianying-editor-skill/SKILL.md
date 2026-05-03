@@ -386,7 +386,7 @@ for start_s, end_s, name in clips:
             'texts': [{'id': str(uuid.uuid4()).replace('-', '')[:24], 'material_id': str(uuid.uuid4()).replace('-', '')[:24], 'text': '', 'duration': dur_us, 'type': 'text'}]
         },
         'tracks': [
-            {'id': vid_track_id, 'type': 'video', 'segments': [{'material_id': vid_mat_id, 'target_timerange': {'start': 0, 'duration': dur_us}, 'speed': 1.0, 'duration': dur_us, 'segment_index': 0}]},
+            {'id': vid_track_id, 'type': 'video', 'segments': [{'material_id': vid_mat_id, 'target_timerange': {'start': 0, 'duration': dur_us}, 'source_timerange': {'start': start_s * 1000000, 'duration': dur_us}, 'speed': 1.0, 'duration': dur_us, 'segment_index': 0}]},
             {'id': txt_track_id, 'type': 'text', 'segments': text_segs if text_segs else [{'material_id': '', 'target_timerange': {'start': 0, 'duration': dur_us}, 'speed': 1.0, 'duration': dur_us, 'segment_index': 0, 'content': {'text': '字幕'}}]}
         ]
     }

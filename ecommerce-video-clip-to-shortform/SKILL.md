@@ -1,6 +1,15 @@
 ---
 name: ecommerce-video-clip-to-shortform
 description: 电商直播长视频 → 带货短切片完整流水线：Whisper转写 → SRT挖掘爆点 → FFmpeg精切 → PIL字幕包装
+triggers:
+  - 直播切片
+  - 视频转字幕
+  - 精剪片段
+  - 带货视频剪辑
+  - 从直播提取短视频
+category: media
+version: 1.0.0
+tags: [直播, 切片, Whisper, FFmpeg, 字幕, 电商, 短视频]
 ---
 
 # 电商直播视频 → 带货切片工作流

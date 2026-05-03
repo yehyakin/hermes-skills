@@ -7,6 +7,9 @@ triggers:
   - 抖音视频下载
   - douyin video
   - 抖音链接
+category: media
+version: 1.0.0
+tags: [抖音, 视频获取, 下载, 爬取]
 ---
 
 # 抖音视频获取
