@@ -43,6 +43,8 @@ graph TB
             NF[📝 neirong-fuoli<br/>内容资产复利化]
             DY[📥 douyin-video-acquisition<br/>抖音视频获取]
             HR[🔬 ecommerce-short-video-hook-research<br/>短视频钩子研究]
+            VD[🗺️ ecommerce-video-discovery<br/>高光发现路由]
+            VP[🚀 ecommerce-video-publishing<br/>自动发布流水线]
         end
 
         subgraph "🎬 视频剪辑"
@@ -71,7 +73,7 @@ graph TB
 
     U --> R
     R --> A
-    A --> NF & DY & HR & JE & JES & WV & EV & EH & EC & ES & YY & SQ & TD & SH & EA
+    A --> NF & DY & HR & JE & JES & WV & EV & EH & EC & ES & YY & SQ & TD & SH & EA & VD & VP
     JE & WV & EV --> MV
     SQ & TD --> MF
 
@@ -95,18 +97,20 @@ hermes-skills/
 ├── ecommerce-short-video-hook-research/  # 短视频钩子研究
 ├── ecommerce-video-clip-to-shortform/   # 直播→短切片流水线
 ├── ecommerce-video-clip-workflow/   # 竞品视频精剪
+├── ecommerce-video-discovery/        # 高光发现路由器（新增）
 ├── ecommerce-video-highlights/      # 高光片段提取
 ├── ecommerce-visual-clip-scanning/  # 视觉带货识别
+├── ecommerce-video-publishing/       # 自动发布流水线（新增）
 ├── error-attribution-analysis/      # 错误归因审计
 ├── hermes-router/                   # Intent Router
 ├── jianying-editor/                 # 剪映桌面版
 ├── jianying-editor-skill/           # CapCut 草稿生成
 ├── neirong-fuoli/                   # 内容资产复利化
-├── speech-quality-review/           # 话术质量审议
-├── system-health-monitor/           # 系统健康审计
-├── task-delivery-scoring/           # 任务交付审计
-├── whisper-video-clipping-workflow/ # Whisper 转写精剪
-└── yoyo-video-clipping-workflow/    # 悠悠有鸽竞品精剪
+├── speech-quality-review/            # 话术质量审议
+├── system-health-monitor/            # 系统健康审计
+├── task-delivery-scoring/            # 任务交付审计
+├── whisper-video-clipping-workflow/  # Whisper 转写精剪
+└── yoyo-video-clipping-workflow/     # 悠悠有鸽竞品精剪
 ```
 
 ---
@@ -150,9 +154,11 @@ Agent: (自动路由到 douyin-video-acquisition)
 
 | Skill | 说明 | 触发词 | 状态 |
 |-------|------|--------|------|
-| 📝 `neirong-fuoli` | 内容资产复利化 - 男装直播话术、产品卖点、爆款案例管理 | /记录选题、/深化选题、/生成话术、/适配多平台、/找素材、/记录数据、/月度复盘、/优化话术 | ✅ 稳定 |
+| 📝 `neirong-fuoli` | 内容资产复利化 - 男装直播话术、产品卖点、爆款案例管理 | /记录选题、/深化选题、/生成话术、/适配多平台、/找素材、/记录数据、/月度复盘、/优化话术、/存档钩子 | ✅ 稳定 |
 | 📥 `douyin-video-acquisition` | 抖音视频获取与解析 - 从分享链接下载视频 | 抖音视频、竞品视频、v.douyin.com | ✅ 稳定 |
 | 🔬 `ecommerce-short-video-hook-research` | 短视频带货钩子研究 - 爆款钩子分析 | 带货钩子、爆款分析、短视频钩子 | ✅ 稳定 |
+| 🗺️ `ecommerce-video-discovery` | 高光发现路由器 - 自动选择 Whisper/视觉/AutoClip 路径 | 发现高光、找带货片段、分析视频片段、竞品视频发现 | ✅ 稳定 |
+| 🚀 `ecommerce-video-publishing` | 自动发布流水线 - 生成发布清单 + 飞书通知 + 数据回流 | /发布视频、/发布到抖音、/推送发布报告、/完整发布 | ✅ 稳定 |
 | 🕵️ `error-attribution-analysis` | 错误归因审计 - 根因分析+责任归属 | 错误分析、问题诊断、出错了 | ✅ 稳定 |
 
 ### 🎬 视频剪辑 (Media)
@@ -191,7 +197,9 @@ Agent: (自动路由到 douyin-video-acquisition)
 ```
 用户: "分析一下秦磊男装的直播话术"
   ↓
-hermes-router → douyin-video-acquisition (获取视频)
+hermes-router → ecommerce-video-discovery (自动路由)
+  ↓
+douyin-video-acquisition (获取视频)
   ↓
 whisper-video-clipping-workflow (转写字幕)
   ↓
@@ -199,9 +207,13 @@ ecommerce-video-highlights (AI 识别带货片段)
   ↓
 jianying-editor-skill (剪映精剪)
   ↓
-speech-quality-review (话术质量评审)
+ecommerce-video-publishing (发布清单 + 飞书通知)
   ↓
-输出: 竞品分析报告 + 优质话术库
+用户: "已发布" → 推送发布报告
+  ↓
+数据自动回流 neirong-fuoli 素材库
+  ↓
+输出: 竞品分析报告 + 优质话术库 + 发布记录
 ```
 
 ### 案例 2：直播切片自动化
@@ -209,11 +221,33 @@ speech-quality-review (话术质量评审)
 ```
 用户: "把这个3小时直播切成10个带货短视频"
   ↓
-hermes-router → ecommerce-video-clip-workflow
+hermes-router → ecommerce-video-discovery
   ↓
 自动执行: Whisper转写 → SRT挖掘爆点 → FFmpeg精切 → PIL字幕包装
   ↓
-输出: 10个带字幕的带货短视频
+ecommerce-video-publishing (生成发布清单)
+  ↓
+用户: "已在剪映发布" → 推送发布报告
+  ↓
+数据自动回流 neirong-fuoli
+  ↓
+输出: 10个带字幕的带货短视频 + 发布记录
+```
+
+### 案例 3：钩子研究 → 话术复用
+
+```
+用户: "研究一下最近爆款男装的钩子"
+  ↓
+ecommerce-short-video-hook-research (获取爆款钩子)
+  ↓
+neirong-fuoli 指令10: /存档钩子 (打标签存入金句库)
+  ↓
+用户: "基于这些钩子写一个新品话术"
+  ↓
+neirong-fuoli /生成话术 (从金句库复用)
+  ↓
+输出: 新品话术 + 素材复用记录
 ```
 
 ---
