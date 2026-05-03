@@ -14,14 +14,29 @@
 
 ## 📖 项目介绍
 
-Hermes Skills 是专为**直播电商场景**打造的 Hermes Agent 技能集合，涵盖男装/女装直播带货的全链路需求：
+Hermes Skills 是专为**直播电商团队**打造的 Hermes Agent 技能集合，解决"竞品研究靠人工看视频、话术靠脑子记、发布靠手工操作"的效率瓶颈。
 
-- 🔍 **竞品监控** — 抖音视频获取、账号分析、话术采集
-- ✂️ **视频剪辑** — Whisper 转写、FFmpeg 精剪、剪映草稿生成
-- ✅ **话术审核** — 直播话术质量评审、任务交付打分
-- 🖥️ **系统诊断** — Hermes/OpenClaw 健康监控、错误归因
+### 解决什么问题
 
-所有 Skills 均可独立使用，也可通过 `hermes-router` 自动路由。
+| 痛点 | Hermes Skills 解法 |
+|------|-------------------|
+| 竞品视频分析 = 2小时人工盯屏幕 | `douyin-video-acquisition` + Whisper 自动转写，10分钟出话术 |
+| 高光片段靠感觉找，容易漏 | `ecommerce-video-discovery` 三路自动发现（Whisper/视觉/AutoClip）|
+| 剪辑完不知道发哪里、发了没 | `ecommerce-video-publishing` 发布清单 + 飞书通知 + 数据回流 |
+| 话术散落在微信/备忘录，复用率低 | `neirong-fuoli` 统一素材库，素材越用越值钱 |
+| 不同人做复盘口径不一 | `content_data_table.md` 自动化数据追踪 |
+
+### 核心价值
+
+- 🔄 **数据闭环**：发布后数据自动回流到素材库，下次创作直接复用
+- 🗺️ **自动路由**：不需要记该用哪个 skill，描述需求自动分派
+- 📊 **可量化**：切片数量/话术亮点/发布记录全部留档，可追溯可复盘
+
+### 适用对象
+
+- 男装/女装直播电商团队（年销千万至亿级）
+- 需要定期分析竞品、产出内容的运营/剪辑/主播
+- 希望用 AI 替代重复劳动的直播老板
 
 ---
 
@@ -117,33 +132,77 @@ hermes-skills/
 
 ## 🚀 快速开始
 
-### 1. 安装 Hermes Agent
+### 环境要求
+
+| 依赖 | 版本要求 | 用途 |
+|------|----------|------|
+| **Hermes Agent** | ≥ 0.9.x | AI Agent 运行时，必须已配置并正常运行 |
+| **Python** | ≥ 3.10 | Skill 脚本执行环境（Whisper/FFmpeg/剪映调用） |
+| **FFmpeg** | 任意版本 | 视频转码、抽帧、字幕烧录 |
+| **Whisper** | latest | 语音转文字（首次调用自动下载模型，约140MB）|
+| **抖音登录态 Cookie** | 浏览器抓取 | 竞品视频获取（非必须，无则只能拉公开视频）|
+| **剪映桌面版**（可选）| Mac/Win 均支持 | 自动剪辑草稿生成（不装则只用 FFmpeg 手动档）|
+| **飞书 Bot Token** | 已配置 channel | 发布后飞书通知（不配置则只本地存文件）|
+
+> **快速验证 Hermes 是否正常**：在飞书/终端发送 `ping`，应返回 "pong"。若无响应先检查网关。
+
+### 安装步骤
 
 ```bash
-# 克隆 Hermes Agent
+# 1. 克隆 Hermes Agent（已有则跳过）
 git clone https://github.com/nousresearch/hermes-agent.git
 cd hermes-agent
-
-# 安装依赖
 pip install -r requirements.txt
+
+# 2. 克隆 Skills 仓库
+git clone https://github.com/yehyakin/hermes-skills.git ~/hermes-skills
+
+# 3. 链接到 Hermes skills 目录
+ln -s ~/hermes-skills ~/.hermes/skills
+
+# 4. 安装 Python 依赖
+pip install -r ~/hermes-skills/requirements.txt
+
+# 5. 安装 FFmpeg（macOS）
+brew install ffmpeg
+
+# 6. 验证 Whisper 可用（首次自动下载 base 模型）
+python -c "import whisper; print('Whisper OK')"
+
+# 7. 重启网关使 Skills 生效
+hermes gateway restart
+
+# 8. 验证 Skills 已加载
+hermes skills list | grep ecommerce
 ```
 
-### 2. 克隆 Skills 仓库
+### 首次配置抖音 Cookie（可选）
 
 ```bash
-# 克隆本仓库
-git clone https://github.com/yehyakin/hermes-skills.git
+# 用 Chrome CDP 提取登录态 Cookie
+"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
+  --remote-debugging-port=9222 \
+  --no-first-run \
+  --user-data-dir=/tmp/chrome-debug
 
-# 链接到 Hermes skills 目录
-ln -s /path/to/hermes-skills ~/.hermes/skills
+# 在浏览器中登录抖音后，控制台执行：
+# window.CONNECTING_TO_CDP=true
 ```
 
-### 3. 使用示例
+### 使用示例
 
 ```python
-# 在 Hermes Agent 中使用
-用户: "帮我分析一下这个抖音竞品视频"
-Agent: (自动路由到 douyin-video-acquisition)
+# 示例 1：竞品视频分析
+用户: "分析这个抖音视频的话术亮点 https://v.douyin.com/xxxxx"
+Agent: (自动路由到 douyin-video-acquisition → Whisper → 话术分析)
+
+# 示例 2：一句话发布视频
+用户: "/发布视频 刚才剪辑的切片"
+Agent: (自动路由到 ecommerce-video-publishing → 生成清单 → 飞书通知)
+
+# 示例 3：记录话术
+用户: "/记录选题 男装圆领打底衫，主播强对比色话术"
+Agent: (写入 content_data_table.md，下次同类产品自动推荐)
 ```
 
 ---
@@ -152,41 +211,41 @@ Agent: (自动路由到 douyin-video-acquisition)
 
 ### 🛒 电商运营 (Ecommerce)
 
-| Skill | 说明 | 触发词 | 状态 |
-|-------|------|--------|------|
-| 📝 `neirong-fuoli` | 内容资产复利化 - 男装直播话术、产品卖点、爆款案例管理 | /记录选题、/深化选题、/生成话术、/适配多平台、/找素材、/记录数据、/月度复盘、/优化话术、/存档钩子 | ✅ 稳定 |
-| 📥 `douyin-video-acquisition` | 抖音视频获取与解析 - 从分享链接下载视频 | 抖音视频、竞品视频、v.douyin.com | ✅ 稳定 |
-| 🔬 `ecommerce-short-video-hook-research` | 短视频带货钩子研究 - 爆款钩子分析 | 带货钩子、爆款分析、短视频钩子 | ✅ 稳定 |
-| 🗺️ `ecommerce-video-discovery` | 高光发现路由器 - 自动选择 Whisper/视觉/AutoClip 路径 | 发现高光、找带货片段、分析视频片段、竞品视频发现 | ✅ 稳定 |
-| 🚀 `ecommerce-video-publishing` | 自动发布流水线 - 生成发布清单 + 飞书通知 + 数据回流 | /发布视频、/发布到抖音、/推送发布报告、/完整发布 | ✅ 稳定 |
-| 🕵️ `error-attribution-analysis` | 错误归因审计 - 根因分析+责任归属 | 错误分析、问题诊断、出错了 | ✅ 稳定 |
+| Skill | 说明 | 触发词 | 输出 | 状态 |
+|-------|------|--------|------|------|
+| 📝 `neirong-fuoli` | 内容资产复利化 - 男装直播话术、产品卖点、爆款案例管理 | /记录选题、/深化选题、/生成话术、/适配多平台、/找素材、/记录数据、/月度复盘、/优化话术、/存档钩子 | 话术文档/卖点清单/竞品对比表 | ✅ 稳定 |
+| 📥 `douyin-video-acquisition` | 抖音视频获取与解析 - 从分享链接下载视频 | 抖音视频、竞品视频、v.douyin.com | 视频文件 + 元数据（标题/话题/时长）| ✅ 稳定 |
+| 🔬 `ecommerce-short-video-hook-research` | 短视频带货钩子研究 - 爆款钩子分析 | 带货钩子、爆款分析、短视频钩子 | 钩子公式清单 + 适用场景 | ✅ 稳定 |
+| 🗺️ `ecommerce-video-discovery` | 高光发现路由器 - 自动选择 Whisper/视觉/AutoClip 路径 | 发现高光、找带货片段、分析视频片段、竞品视频发现 | 高光时间戳列表 + 置信度评分 | ✅ 稳定 |
+| 🚀 `ecommerce-video-publishing` | 自动发布流水线 - 生成发布清单 + 飞书通知 + 数据回流 | /发布视频、/发布到抖音、/推送发布报告、/完整发布 | 发布清单 + 飞书消息 + 数据回填记录 | ✅ 稳定 |
+| 🕵️ `error-attribution-analysis` | 错误归因审计 - 根因分析+责任归属 | 错误分析、问题诊断、出错了 | 归因报告（责任方 + 根因 + 修复建议）| ✅ 稳定 |
 
 ### 🎬 视频剪辑 (Media)
 
-| Skill | 说明 | 触发词 | 状态 |
-|-------|------|--------|------|
-| ✂️ `jianying-editor` | 剪映桌面版自动剪辑 - 素材导入、字幕、配音、导出 | 剪映自动剪辑、视频精剪 | ⚠️ 草稿 |
-| 📋 `jianying-editor-skill` | CapCut 草稿生成 - Mac 剪映草稿 SDK | CapCut、草稿生成 | ✅ 稳定 |
-| 🎙️ `whisper-video-clipping-workflow` | Whisper 转写精剪 - 长视频转写+AI识别高光切片 | 视频转写、字幕切片、Whisper | ✅ 稳定 |
-| 🎞️ `ecommerce-video-clip-workflow` | 竞品视频精剪 - AI转写+识别带货节点+精剪 | 竞品视频、竞品分析、视频精剪 | ✅ 稳定 |
-| ✨ `ecommerce-video-highlights` | 电商高光片段提取 - ffmpeg+Whisper+视觉AI | 高光片段、精彩瞬间、挂车片段 | ✅ 稳定 |
-| 👁️ `ecommerce-visual-clip-scanning` | 视觉带货识别 - 画面抽帧+AI分析 | 视觉识别、画面分析、无字幕视频 | ✅ 稳定 |
-| 🎬 `ecommerce-video-clip-to-shortform` | 直播→短切片流水线 - Whisper+SRT+FFmpeg | 直播切片、带货切片、短视频制作 | ✅ 稳定 |
-| 🕊️ `yoyo-video-clipping-workflow` | 悠悠有鸽竞品精剪 - 完整流水线示例 | 竞品精剪、悠悠有鸽、YoYo视频 | ✅ 稳定 |
+| Skill | 说明 | 触发词 | 输出 | 状态 |
+|-------|------|--------|------|------|
+| ✂️ `jianying-editor` | 剪映桌面版自动剪辑 - 素材导入、字幕、配音、导出 | 剪映自动剪辑、视频精剪 | 剪映草稿文件夹（可直接用剪映打开）| ⚠️ 草稿 |
+| 📋 `jianying-editor-skill` | CapCut 草稿生成 - Mac 剪映草稿 SDK | CapCut、草稿生成 | CapCut draft_content.json + draft_meta_info.json | ✅ 稳定 |
+| 🎙️ `whisper-video-clipping-workflow` | Whisper 转写精剪 - 长视频转写+AI识别高光切片 | 视频转写、字幕切片、Whisper | SRT字幕文件 + 高光片段时间码 | ✅ 稳定 |
+| 🎞️ `ecommerce-video-clip-workflow` | 竞品视频精剪 - AI转写+识别带货节点+精剪 | 竞品视频、竞品分析、视频精剪 | 精剪视频文件 + 带字幕版本 | ✅ 稳定 |
+| ✨ `ecommerce-video-highlights` | 电商高光片段提取 - ffmpeg+Whisper+视觉AI | 高光片段、精彩瞬间、挂车片段 | 高光MP4片段（可直发抖音）| ✅ 稳定 |
+| 👁️ `ecommerce-visual-clip-scanning` | 视觉带货识别 - 画面抽帧+AI分析 | 视觉识别、画面分析、无字幕视频 | 抽帧图片 + 带标注的分析报告 | ✅ 稳定 |
+| 🎬 `ecommerce-video-clip-to-shortform` | 直播→短切片流水线 - Whisper+SRT+FFmpeg | 直播切片、带货切片、短视频制作 | 9:16 竖屏短切片 + 烧录字幕 | ✅ 稳定 |
+| 🕊️ `yoyo-video-clipping-workflow` | 悠悠有鸽竞品精剪 - 完整流水线示例 | 竞品精剪、悠悠有鸽、YoYo视频 | 精剪成品 + 话术转写 + 话题标签 | ✅ 稳定 |
 
 ### ⚖️ 监查审计 (Audit)
 
-| Skill | 说明 | 触发词 | 状态 |
-|-------|------|--------|------|
-| 🎯 `speech-quality-review` | 话术质量审议 - 直播话术评分≥7.0 | 话术审核、话术评审、直播话术 | ✅ 稳定 |
-| 📊 `task-delivery-scoring` | 任务交付审计 - 准确性/完整性/时效性评分 | 任务评分、交付审计、AI任务打分 | ✅ 稳定 |
-| 💚 `system-health-monitor` | 系统健康审计 - Hermes/OpenClaw 进程/日志/资源 | 系统监控、健康检查、进程状态 | ✅ 稳定 |
+| Skill | 说明 | 触发词 | 输出 | 状态 |
+|-------|------|--------|------|------|
+| 🎯 `speech-quality-review` | 话术质量审议 - 直播话术评分≥7.0 | 话术审核、话术评审、直播话术 | 评分表（7维度）+ 改进建议清单 | ✅ 稳定 |
+| 📊 `task-delivery-scoring` | 任务交付审计 - 准确性/完整性/时效性评分 | 任务评分、交付审计、AI任务打分 | 评分报告（4维度加权得分）| ✅ 稳定 |
+| 💚 `system-health-monitor` | 系统健康审计 - Hermes/OpenClaw 进程/日志/资源 | 系统监控、健康检查、进程状态 | 健康报告 + 异常告警（发现问题时）| ✅ 稳定 |
 
 ### 🔀 系统路由 (System)
 
-| Skill | 说明 | 触发词 | 状态 |
-|-------|------|--------|------|
-| 🔀 `hermes-router` | Intent Router - 用户意图自动路由到正确 Skill | 路由、应该用哪个Skill、skill dispatch | ✅ 稳定 |
+| Skill | 说明 | 触发词 | 输出 | 状态 |
+|-------|------|--------|------|------|
+| 🔀 `hermes-router` | Intent Router - 用户意图自动路由到正确 Skill | 路由、应该用哪个Skill、skill dispatch | 路由决策 + 执行计划（自动分派到对应Skill）| ✅ 稳定 |
 
 ---
 
