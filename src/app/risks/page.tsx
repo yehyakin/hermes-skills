@@ -121,12 +121,14 @@ export default function RisksPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <div className="text-center">
-          <div className="text-4xl mb-4">⏳</div>
-          <p className="text-gray-500">Loading risks...</p>
+      <AppShell>
+        <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "40px" }}>
+          <div style={{ textAlign: "center" }}>
+            <div style={{ fontSize: "32px", marginBottom: "12px" }}>⏳</div>
+            <p style={{ fontSize: "14px", color: "#64748b" }}>Loading risks...</p>
+          </div>
         </div>
-      </div>
+      </AppShell>
     );
   }
 

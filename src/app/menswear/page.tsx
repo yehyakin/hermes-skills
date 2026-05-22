@@ -781,11 +781,11 @@ export default function MenswearPage() {
 
       {/* ── STUDIO HEADER ─────────────────────────────────────────────────────── */}
       <LiquidPanel variant="light" className="w-full h-14 flex items-center px-6 gap-5 rounded-b-2xl !rounded-t-none z-10">
-        <span className="text-base font-semibold" style={{ color: "#0f172a", letterSpacing: "-0.08px" }}>Menswear Workflow</span>
+        <span className="text-base font-semibold" style={{ color: "#0f172a", letterSpacing: "-0.08px" }}>男装工作流</span>
         <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg" style={{ background: "rgba(8,145,178,0.08)" }}>
-          <span className="w-2 h-2 rounded-full" style={{ background: "#22c55e" }} />
+          <span className="w-2 h-2 rounded-full" style={{ background: generationMode === "real" ? "#ef4444" : "#22c55e" }} />
           <span className="text-sm font-medium" style={{ color: "#0f172a" }}>
-            {generationMode === "real" ? "Real API" : "Mock Mode"}
+            {generationMode === "real" ? "⚠️ 真实模式" : "✓ 模拟模式"}
           </span>
         </div>
         <div className="flex-1" />
@@ -794,7 +794,6 @@ export default function MenswearPage() {
           label={billingRiskLabel[billingRiskLevel]?.text ?? billingRiskLevel}
           size="sm"
         />
-        <LiquidBadge tone="green" label="Billing OK" size="sm" />
       </LiquidPanel>
 
       {/* ── HIDDEN FILE INPUT ─────────────────────────────────────────────────── */}
@@ -888,7 +887,7 @@ export default function MenswearPage() {
                 <span className="text-xl">👤</span>
                 <div>
                   <div className="text-sm font-semibold" style={{ color: "#0f172a" }}>
-                    {selectedModel ? "Target Model" : "Select Model"}
+                    {selectedModel ? "目标模特图" : "选择模特图"}
                   </div>
                   <div className="text-xs" style={{ color: "#94a3b8" }}>
                     {selectedModel ? selectedModel.slice(0, 24) + "..." : "点击上传模特图"}
@@ -960,10 +959,10 @@ export default function MenswearPage() {
                     : "#3b82f6",
                 }}
               >
-                {wf.status === "completed" ? "✅ COMPLETED"
-                  : wf.status === "failed" ? "❌ FAILED"
+                {wf.status === "completed" ? "✅ 已完成"
+                  : wf.status === "failed" ? "❌ 失败"
                   : wf.status === "external_polling" || wf.status === "running"
-                  ? "🔄 PROCESSING"
+                  ? "🔄 处理中"
                   : `⏳ ${wf.status}`}
               </div>
             )}
@@ -991,7 +990,7 @@ export default function MenswearPage() {
                 <div className="text-center">
                   <div className="text-4xl mb-3">👕</div>
                   <div className="text-xs font-mono" style={{ color: "#94a3b8" }}>
-                    Outfit_Result_Preview ({selectedSize})
+                    穿搭结果预览 ({selectedSize})
                   </div>
                 </div>
               )}
@@ -1010,8 +1009,8 @@ export default function MenswearPage() {
                 <span style={{ color: "#16a34a" }}>🪵</span>
                 <span className="text-xs" style={{ color: "#64748b" }}>
                   {wf.parent_asset_ids.length > 0
-                    ? `${wf.parent_asset_ids.length} parent assets → Active Result`
-                    : "No lineage yet"}
+                    ? `${wf.parent_asset_ids.length} 个母资产 → 有效结果`
+                    : "暂无资产血脉"}
                 </span>
               </div>
               <span
@@ -1023,9 +1022,9 @@ export default function MenswearPage() {
                   color: wf.result_asset?.status === "active" ? "#16a34a" : "#94a3b8",
                 }}
               >
-                {wf.result_asset?.status === "active" ? "VALID"
-                  : wf.result_asset?.status === "invalidated" ? "INVALIDATED"
-                  : "DRAFT"}
+                {wf.result_asset?.status === "active" ? "有效"
+                  : wf.result_asset?.status === "invalidated" ? "已失效"
+                  : "草稿"}
               </span>
             </div>
           </LiquidPanel>
@@ -1036,7 +1035,7 @@ export default function MenswearPage() {
             items={[
               {
                 icon: "🔍",
-                label: "Dry Run",
+                label: "干跑预览",
                 onClick: () => setShowDryRunPreview(true),
                 active: false,
               },
@@ -1113,7 +1112,7 @@ export default function MenswearPage() {
               </div>
               <div className="flex-1">
                 <h3 className="text-base font-semibold" style={{ color: "#111827", margin: 0 }}>
-                  Real Image2 Dry Run Preview
+                  真实图生图 干跑预览
                 </h3>
                 <div className="flex gap-2 mt-2">
                   <span
@@ -1137,10 +1136,10 @@ export default function MenswearPage() {
               {/* Summary grid */}
               <div className="grid grid-cols-2 gap-3">
                 {[
-                  { label: "Provider", value: "OpenAI GPT Image 2", sub: "image2" },
-                  { label: "Idempotency Key", value: idemKey.slice(0, 24) + "..." },
-                  { label: "Model Asset", value: selectedModel ? selectedModel.slice(0, 20) + "..." : "—" },
-                  { label: "Garment Count", value: `${selectedTops.length + selectedPants.length} 件`, sub: `上装 ${selectedTops.length} / 下装 ${selectedPants.length}` },
+                  { label: "供应商", value: "OpenAI GPT Image 2", sub: "image2" },
+                  { label: "幂等键", value: idemKey.slice(0, 24) + "..." },
+                  { label: "模特资产", value: selectedModel ? selectedModel.slice(0, 20) + "..." : "—" },
+                  { label: "服装数量", value: `${selectedTops.length + selectedPants.length} 件`, sub: `上装 ${selectedTops.length} / 下装 ${selectedPants.length}` },
                 ].map((item) => (
                   <div
                     key={item.label}
@@ -1156,7 +1155,7 @@ export default function MenswearPage() {
 
               {/* Payload JSON */}
               <div>
-                <div className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "#94a3b8" }}>Full Payload</div>
+                <div className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "#94a3b8" }}>完整请求体</div>
                 <div
                   className="rounded-xl p-4 max-h-48 overflow-auto"
                   style={{ background: "#0f172a" }}
