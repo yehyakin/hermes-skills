@@ -172,7 +172,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             padding:  "8px 8px",
           }}
         >
-          <div className="la-nav-section">Workspace</div>
+          <div className="la-nav-section">工作区</div>
           {NAV_ITEMS.map((item) => (
             <Link
               key={item.href}
@@ -184,7 +184,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </Link>
           ))}
 
-          <div className="la-nav-section" style={{ marginTop: "8px" }}>Labs</div>
+          <div className="la-nav-section" style={{ marginTop: "8px" }}>实验室</div>
           {NAV_BOTTOM.map((item) => (
             <Link
               key={item.href}
@@ -214,7 +214,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               justifyContent:"space-between",
             }}
           >
-            <span>v5.1 · Light AI OS</span>
+            <span>v5.1 · 轻智 OS</span>
             <span>● 在线</span>
           </div>
         </div>
