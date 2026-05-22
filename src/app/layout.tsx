@@ -33,7 +33,7 @@ export default function RootLayout({
 
   // Light shell gradient — three soft radial layers for spatial depth
   const lightBg =
-    "background: radial-gradient(circle at 20% 10%, rgba(96,165,250,0.14), transparent 32%), radial-gradient(circle at 80% 0%, rgba(168,85,247,0.10), transparent 30%), radial-gradient(circle at 50% 100%, rgba(20,184,166,0.08), transparent 34%), #f6f8fb";
+    "radial-gradient(circle at 20% 10%, rgba(96,165,250,0.14), transparent 32%), radial-gradient(circle at 80% 0%, rgba(168,85,247,0.10), transparent 30%), radial-gradient(circle at 50% 100%, rgba(20,184,166,0.08), transparent 34%), #f6f8fb";
 
   return (
     <html lang="en" className="h-full">
