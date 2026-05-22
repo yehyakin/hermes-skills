@@ -342,3 +342,99 @@ agent-prompt:
     The page shows {data-description}.
     Key components needed: {component-list}.
     API endpoint: /api/{endpoint}.
+
+---
+
+# DESIGN.md v1.1 — 必补内容
+
+## 1. Product Identity
+
+Supercolor AI OS 是**浅色任务调度工作台**，不是暗色开发者终端，不是营销页。
+
+视觉基调：
+- 背景：浅色径向渐变（#f6f8fb + 蓝/紫/青三色光晕）
+- 面板：液态玻璃（毛玻璃白），不是深色毛玻璃
+- 文字：深墨色（#0f172a）为主，不是浅色文字在深色上
+
+## 2. Language — 中文化规则
+
+**所有用户可见 UI 必须中文化**，包括但不限于：
+- 页面标题、Tab 标签、筛选器选项
+- 按钮文案、提示语、空状态文案
+- 错误信息、加载提示
+
+**允许保留英文**：API 字段名、task_id、provider、external_task_id、日志原文、模型名。
+
+**禁止残留**（发现即修）：
+- ❌ "Task Operations" / "Agent Operations" → ✅ "任务操作" / "智能体操作"
+- ❌ "QUICK FILTER" / "Mock Mode" / "Select Model" → 中文化
+- ❌ "No lineage yet" / "Loading agents..." → 中文空状态
+- ❌ 任何英文 Tab、按钮、空状态文案
+
+## 3. Page Rules — 页面职责
+
+| 路径 | 定位 | 核心内容 |
+|------|------|----------|
+| `/` | AI OS 总览 | KPI统计 + 最近任务 + 智能体状态 + 风险确认 + 通信 |
+| `/tasks` | 任务运营表 | 中文筛选，状态清晰（online/busy/error/stalled/completed/failed） |
+| `/tasks/[id]` | 任务详情 | 基本信息 / 结果 / 外部API / 事件流 / Memory / Assets / 操作按钮 |
+| `/menswear` | 男装生产工作台 | 素材优先，预览不裁切服装细节 |
+| `/assets` | 素材库 | 图片/视频清晰分组，预览 / 下载 / 删除明确 |
+| `/agents` | 智能体状态 | online / external / webhook / adapter 状态不误报 offline |
+| `/codex-hermes` | 通信面板 | 偏工作流 inbox 风格，不要 terminal 风 |
+
+## 4. Business Safety — 安全可读性
+
+以下场景**必须明显标注**，不能为了玻璃效果降低可读性：
+
+| 场景 | 要求 |
+|------|------|
+| 高风险操作 | 红色警告标识 + 确认弹窗 |
+| 扣费操作 | 明确价格 + 确认按钮 |
+| 外部任务 | 特殊图标 + 来源标注 |
+| 可恢复超时 | 倒计时 + 重试入口 |
+| 真实 API 调用 | 必须二次确认 |
+| 历史任务失效 | 状态可见（划线/灰色/失效标签） |
+| 素材失效 | 预览区明确提示"已失效" |
+
+## 5. Component Contract — 组件规范
+
+页面必须统一使用组件库，禁止业务页面手写随机样式：
+
+| 组件 | 用途 |
+|------|------|
+| `LiquidPanel` | 页面根容器、卡片 |
+| `LiquidButton` | 操作按钮 |
+| `LiquidBadge` | 标签、分类 |
+| `LiquidDock` | Tab 切换 |
+| `StatusPill` | 状态展示 |
+| `Timeline` | 事件流 |
+| `InspectorPanel` | 详情面板 |
+| `AssetCard` | 素材卡片 |
+
+**禁止**：手写 `rgba(...)` / `box-shadow` / `radial-gradient` 到业务组件里。
+
+## 6. Verification — 交付验收清单
+
+每页完成后必须逐项验证：
+
+- [ ] HTTP 200，返回正常
+- [ ] 无加载卡死（3s 内渲染完成）
+- [ ] 无 React #418 水合错误（检查 console）
+- [ ] 无旧暗色文案残留（grep 检查 #1a1a2e / #0f0f1a）
+- [ ] 中文化完整（无英文 Tab/按钮/空状态残留）
+- [ ] 数据真实显示（无 mock 数据硬编码）
+- [ ] 移动端不遮挡关键按钮（底部留足空间）
+
+## 7. 字体与字重规范
+
+| 用途 | 字重 | 字号 | 说明 |
+|------|------|------|------|
+| 页面标题 | 600 | 32px | hero，负 letter-spacing -0.28px |
+| 面板标题 | 600 | 13px | panel-title，-0.08px |
+| 正文 | 400 | 14px | body，-0.12px |
+| 强调正文 | 600 | 14px | body-strong |
+| 辅助说明 | 400 | 12px | caption |
+| 代码/ID | 400 | 12px | mono，无 letter-spacing |
+
+**禁止使用字重 500**。字重阶梯：400（正文）/ 600（标题/强调）。
