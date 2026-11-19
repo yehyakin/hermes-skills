@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
+import { usePolling } from "@/usePolling";
 import { AppShell } from "@/components/AppShell";
 
 import { LightGlassPanel as LiquidPanel } from "@/components/liquid/LightGlassPanel";
@@ -468,11 +469,7 @@ export default function AgentsPage() {
     }
   }, []);
 
-  useEffect(() => {
-    fetchAgents();
-    const id = setInterval(fetchAgents, 8000);
-    return () => clearInterval(id);
-  }, [fetchAgents]);
+  usePolling(fetchAgents, 8000);
 
   // ── Counts ────────────────────────────────────────────────────────────────
   const counts = {

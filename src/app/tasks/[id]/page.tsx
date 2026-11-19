@@ -777,32 +777,32 @@ export default function TaskDetailPage() {
   const [taskError, setTaskError]   = useState<string | null>(null);
   const [eventsError, setEventsError] = useState(false);
 
-  const fetchAll = useCallback(async () => {
-    const results = await Promise.allSettled([
+  const fetchAll = useCallback(() => (
+    Promise.allSettled([
       fetch(`${API_BASE}/tasks/${encodeURIComponent(taskId)}`, { cache: "no-store" }),
       fetch(`${API_BASE}/tasks/${encodeURIComponent(taskId)}/events`, { cache: "no-store" }),
-    ]);
+    ]).then(async (results) => {
+      if (results[0].status === "fulfilled" && results[0].value.ok) {
+        const json = await results[0].value.json();
+        const t = getDataObject<Task>(json);
+        if (t) setTask(t);
+        else setTaskError("Task not found");
+      } else if (results[0].status === "fulfilled") {
+        setTaskError(`HTTP ${results[0].value.status}`);
+      } else {
+        setTaskError(results[0].reason?.message ?? "Connection failed");
+      }
 
-    if (results[0].status === "fulfilled" && results[0].value.ok) {
-      const json = await results[0].value.json();
-      const t = getDataObject<Task>(json);
-      if (t) setTask(t);
-      else setTaskError("Task not found");
-    } else if (results[0].status === "fulfilled") {
-      setTaskError(`HTTP ${results[0].value.status}`);
-    } else {
-      setTaskError(results[0].reason?.message ?? "Connection failed");
-    }
+      if (results[1].status === "fulfilled" && results[1].value.ok) {
+        const json = await results[1].value.json();
+        setEvents(getDataArray<TaskEvent>(json));
+      } else {
+        setEventsError(true);
+      }
 
-    if (results[1].status === "fulfilled" && results[1].value.ok) {
-      const json = await results[1].value.json();
-      setEvents(getDataArray<TaskEvent>(json));
-    } else {
-      setEventsError(true);
-    }
-
-    setLoading(false);
-  }, [taskId]);
+      setLoading(false);
+    })
+  ), [taskId]);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 

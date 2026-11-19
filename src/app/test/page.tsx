@@ -29,7 +29,8 @@ export default function TestPage() {
           const text = await res.text();
           let data: unknown;
           try { data = JSON.parse(text); } catch { data = text.slice(0, 100); }
-          r[t.name] = { ok: res.ok, status: res.status, ms, hasData: !!(data as any)?.data, data };
+          const hasData = typeof data === "object" && data !== null && "data" in data && Boolean(data.data);
+          r[t.name] = { ok: res.ok, status: res.status, ms, hasData, data };
           console.log(`[TEST] ${t.name}: ${res.status} in ${ms}ms`);
         } catch (err) {
           r[t.name] = { ok: false, error: String(err) };
