@@ -1,5 +1,9 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
+
+const subscribe = () => () => {};
+const getClientSnapshot = () => true;
+const getServerSnapshot = () => false;
 
 /**
  * Renders dynamic text only after client mount.
@@ -13,11 +17,6 @@ export function ClientOnlyText({
   render: () => string;
   fallback?: string;
 }) {
-  const [value, setValue] = useState<string | null>(null);
-
-  useEffect(() => {
-    setValue(render());
-  }, [render]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  return <>{value ?? fallback}</>;
+  const isClient = useSyncExternalStore(subscribe, getClientSnapshot, getServerSnapshot);
+  return <>{isClient ? render() : fallback}</>;
 }

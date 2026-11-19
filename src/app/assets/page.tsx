@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
+import { usePolling } from "@/usePolling";
 import { AppShell } from "@/components/AppShell";
 import { StatusPill } from "@/components/StatusPill";
 import { TOKENS } from "@/components/designTokens";
@@ -278,11 +279,7 @@ export default function AssetsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastSync, setLastSync] = useState<Date | null>(null);
-  const [mounted, setMounted] = useState(false);
   const [adding, setAdding] = useState(false);
-
-  // Avoid hydration mismatch — only run relative time on client
-  useEffect(() => { setMounted(true); }, []);
 
   const fetchLibrary = useCallback(async () => {
     try {
@@ -309,11 +306,7 @@ export default function AssetsPage() {
     }
   }, []);
 
-  useEffect(() => {
-    fetchLibrary();
-    const id = setInterval(fetchLibrary, 10000);
-    return () => clearInterval(id);
-  }, [fetchLibrary]);
+  usePolling(fetchLibrary, 10000);
 
   const handleDownload = (asset: Asset) => {
     const a = document.createElement("a");
@@ -478,7 +471,7 @@ export default function AssetsPage() {
       </div>
 
       {/* ── Stats Bar (client-only, avoids hydration mismatch) ── */}
-      {mounted && lastSync && (
+      {lastSync && (
         <div
           style={{
             fontSize: "11px",

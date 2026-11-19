@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
+import { usePolling } from "@/usePolling";
 import Link from "next/link";
 import { AppShell } from "@/components/AppShell";
 import {
@@ -69,6 +70,45 @@ function agentLabel(from: string, to: string): string {
   return `${map[from] || from} → ${map[to] || to}`;
 }
 
+// ─── Filter button helper ───────────────────────────────────────────────────
+
+function FilterBtn({
+  label,
+  count,
+  active,
+  color,
+  onClick,
+}: {
+  label: string;
+  count: number;
+  active: boolean;
+  color?: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className="w-full text-left px-2.5 py-1.5 text-xs flex items-center justify-between rounded-xl transition-all duration-150"
+      style={{
+        background: active ? "rgba(56,189,248,0.10)" : "transparent",
+        border: `1px solid ${active ? "rgba(56,189,248,0.25)" : "transparent"}`,
+        color: active ? (color || "#7dd3fc") : "#94a3b8",
+      }}
+    >
+      <span className="truncate">{label}</span>
+      <span
+        className="ml-2 text-xs shrink-0 px-1.5 py-0.5 rounded-full"
+        style={{
+          background: active ? "rgba(56,189,248,0.15)" : "rgba(148,163,184,0.10)",
+          color: active ? (color || "#7dd3fc") : "#64748b",
+        }}
+      >
+        {count}
+      </span>
+    </button>
+  );
+}
+
 export default function CodexHermesPage() {
   const [messages, setMessages] = useState<CommMessage[]>([]);
   const [loading, setLoading] = useState(true);
@@ -125,11 +165,7 @@ export default function CodexHermesPage() {
     }
   }, []);
 
-  useEffect(() => {
-    fetchMessages();
-    const interval = setInterval(fetchMessages, 3000);
-    return () => clearInterval(interval);
-  }, [fetchMessages]);
+  usePolling(fetchMessages, 3000);
 
   // ─── Filtering ───────────────────────────────────────────────────────────────
 
@@ -386,45 +422,6 @@ export default function CodexHermesPage() {
       </div>
     );
   };
-
-  // ─── Filter button helper ───────────────────────────────────────────────────
-
-  function FilterBtn({
-    label,
-    count,
-    active,
-    color,
-    onClick,
-  }: {
-    label: string;
-    count: number;
-    active: boolean;
-    color?: string;
-    onClick: () => void;
-  }) {
-    return (
-      <button
-        onClick={onClick}
-        className="w-full text-left px-2.5 py-1.5 text-xs flex items-center justify-between rounded-xl transition-all duration-150"
-        style={{
-          background: active ? "rgba(56,189,248,0.10)" : "transparent",
-          border: `1px solid ${active ? "rgba(56,189,248,0.25)" : "transparent"}`,
-          color: active ? (color || "#7dd3fc") : "#94a3b8",
-        }}
-      >
-        <span className="truncate">{label}</span>
-        <span
-          className="ml-2 text-xs shrink-0 px-1.5 py-0.5 rounded-full"
-          style={{
-            background: active ? "rgba(56,189,248,0.15)" : "rgba(148,163,184,0.10)",
-            color: active ? (color || "#7dd3fc") : "#64748b",
-          }}
-        >
-          {count}
-        </span>
-      </button>
-    );
-  }
 
   // ─── Render ─────────────────────────────────────────────────────────────────
 

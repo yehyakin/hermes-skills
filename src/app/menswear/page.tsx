@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { startPolling } from "@/usePolling";
 import { AppShell } from "@/components/AppShell";
 import { LightGlassPanel as LiquidPanel } from "@/components/liquid/LightGlassPanel";
 import LiquidDock from "@/components/liquid/LiquidDock";
@@ -188,6 +189,25 @@ function EventItem({ event_type, message }: { event_type: string; message: strin
   );
 }
 
+// ── Page Background (from DESIGN.md layout.page-bg) ───────────────────────────
+function LightBackground() {
+  return (
+    <div className="absolute inset-0 pointer-events-none" style={{ background: "#f6f8fb" }}>
+      <div
+        className="absolute inset-0"
+        style={{
+          background: `
+            radial-gradient(circle at 20% 10%, rgba(96,165,250,0.14), transparent 32%),
+            radial-gradient(circle at 80% 0%, rgba(168,85,247,0.10), transparent 30%),
+            radial-gradient(circle at 50% 100%, rgba(20,184,166,0.08), transparent 34%),
+            #f6f8fb
+          `,
+        }}
+      />
+    </div>
+  );
+}
+
 // ── Main Component ─────────────────────────────────────────────
 
 export default function MenswearPage() {
@@ -199,7 +219,6 @@ export default function MenswearPage() {
   const [selectedTops, setSelectedTops] = useState<string[]>([]);
   const [selectedPants, setSelectedPants] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
-  const [loadingAssets, setLoadingAssets] = useState(true);
   const [uploadingType, setUploadingType] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [idemMessage, setIdemMessage] = useState<string | null>(null);
@@ -207,36 +226,6 @@ export default function MenswearPage() {
   // ── P3-4C: Custom Prompt ─────────────────────────────────────
   const [customPrompt, setCustomPrompt] = useState<string>("");
   const [selectedSize, setSelectedSize] = useState<string>("3:4");
-  const [savedPrompts, setSavedPrompts] = useState<{name: string; prompt: string}[]>([]);
-
-  // Load saved prompts from localStorage
-  useEffect(() => {
-    const saved = localStorage.getItem("menswear_saved_prompts");
-    if (saved) {
-      try {
-        setSavedPrompts(JSON.parse(saved));
-      } catch {}
-    }
-  }, []);
-
-  // Save current prompt
-  const savePrompt = () => {
-    if (!customPrompt.trim()) return;
-    const name = customPrompt.slice(0, 30) + (customPrompt.length > 30 ? "..." : "");
-    const newSaved = [{name, prompt: customPrompt}, ...savedPrompts.filter(p => p.prompt !== customPrompt)].slice(0, 10);
-    setSavedPrompts(newSaved);
-    localStorage.setItem("menswear_saved_prompts", JSON.stringify(newSaved));
-  };
-
-  // Load a saved prompt
-  const loadPrompt = (prompt: string) => setCustomPrompt(prompt);
-
-  // Delete a saved prompt
-  const deletePrompt = (prompt: string) => {
-    const newSaved = savedPrompts.filter(p => p.prompt !== prompt);
-    setSavedPrompts(newSaved);
-    localStorage.setItem("menswear_saved_prompts", JSON.stringify(newSaved));
-  };
 
   // ── P3-4A: Image2 Safety Gate ────────────────────────────────
   const [generationMode, setGenerationMode] = useState<"mock" | "real">("mock");
@@ -328,31 +317,13 @@ export default function MenswearPage() {
     events: [],
     error: null,
   });
-  const pollTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const stopPolling = useRef<(() => void) | null>(null);
 
-  // ── Load assets ──────────────────────────────────────────────
-  const loadAssets = useCallback(async () => {
-    try {
-      const res = await fetch(`${API_BASE}/assets/list`);
-      const data = await res.json();
-      const allAssets: Asset[] = data.assets || [];
-      setAssets(allAssets);
-      setModels(allAssets.filter((a) => a.type === "model_image" && a.status === "active"));
-      setTops(allAssets.filter((a) => a.type === "top_image" && a.status === "active"));
-      setPants(allAssets.filter((a) => a.type === "pants_image" && a.status === "active"));
-    } catch (e) {
-      console.error("Failed to load assets:", e);
-    } finally {
-      setLoadingAssets(false);
-    }
-  }, []);
-
-  // ── Restore session on mount ────────────────────────────────────
   const sessionRestoredRef = useRef(false);
   const [sessionRestored, setSessionRestored] = useState(false);
 
-  useEffect(() => {
-    if (sessionRestoredRef.current || loadingAssets) return;
+  const restoreSession = useCallback(() => {
+    if (sessionRestoredRef.current) return;
     sessionRestoredRef.current = true;
 
     const saved = loadSession();
@@ -365,10 +336,6 @@ export default function MenswearPage() {
     if (saved.selected_model_asset_id) {
       setSelectedModel(saved.selected_model_asset_id);
     }
-    // Restore garment selections (after assets loaded via loadAssets)
-    const topsIds = saved.selected_garment_asset_ids || [];
-    const pantsIds: string[] = [];
-
     // Restore workflow state if workflow_id exists
     if (saved.workflow_id) {
       setWf({
@@ -391,22 +358,26 @@ export default function MenswearPage() {
         events: [],
         error: null,
       });
-
-      // If still running/pending, resume polling
-      if (saved.status && !["completed", "failed", "cancelled"].includes(saved.status)) {
-        // Start polling for this workflow
-        if (pollTimer.current) clearInterval(pollTimer.current);
-        pollTimer.current = setInterval(() => {
-          pollWorkflow(saved.workflow_id!);
-          loadEvents();
-        }, 3000);
-        pollWorkflow(saved.workflow_id!);
-        loadEvents();
-      }
     }
     setSessionRestored(true);
+  }, []);
 
-  }, [loadingAssets]); // eslint-disable-line react-hooks/exhaustive-deps
+  // ── Load assets ──────────────────────────────────────────────
+  const loadAssets = useCallback(async () => {
+    try {
+      const res = await fetch(`${API_BASE}/assets/list`);
+      const data = await res.json();
+      const allAssets: Asset[] = data.assets || [];
+      setAssets(allAssets);
+      setModels(allAssets.filter((a) => a.type === "model_image" && a.status === "active"));
+      setTops(allAssets.filter((a) => a.type === "top_image" && a.status === "active"));
+      setPants(allAssets.filter((a) => a.type === "pants_image" && a.status === "active"));
+    } catch (e) {
+      console.error("Failed to load assets:", e);
+    } finally {
+      restoreSession();
+    }
+  }, [restoreSession]);
 
   // ── Save session helper ─────────────────────────────────────────
   const saveCurrentSession = useCallback(() => {
@@ -449,10 +420,8 @@ export default function MenswearPage() {
 
       // Stop polling on terminal state
       if (["completed", "failed", "invalidated", "dry_run_pending"].includes(data.status)) {
-        if (pollTimer.current) {
-          clearInterval(pollTimer.current);
-          pollTimer.current = null;
-        }
+        stopPolling.current?.();
+        stopPolling.current = null;
       }
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
@@ -476,16 +445,14 @@ export default function MenswearPage() {
 
   // Poll when workflow_id is set
   useEffect(() => {
-    if (!wf.workflow_id) return;
-    pollWorkflow(wf.workflow_id);
-    loadEvents();
-    pollTimer.current = setInterval(() => {
-      pollWorkflow(wf.workflow_id!);
+    const workflowId = wf.workflow_id;
+    if (!workflowId) return;
+    const stop = startPolling(() => {
+      pollWorkflow(workflowId);
       loadEvents();
     }, 3000);
-    return () => {
-      if (pollTimer.current) clearInterval(pollTimer.current);
-    };
+    stopPolling.current = stop;
+    return stop;
   }, [wf.workflow_id, pollWorkflow, loadEvents]);
 
   // ── Submit workflow ───────────────────────────────────────────
@@ -754,25 +721,6 @@ export default function MenswearPage() {
     setPendingUploadType(null);
     e.target.value = ""; // reset so same file can be re-selected
   };
-
-  // ── Page Background (from DESIGN.md layout.page-bg) ───────────────────────────
-  function LightBackground() {
-    return (
-      <div className="absolute inset-0 pointer-events-none" style={{ background: "#f6f8fb" }}>
-        <div
-          className="absolute inset-0"
-          style={{
-            background: `
-              radial-gradient(circle at 20% 10%, rgba(96,165,250,0.14), transparent 32%),
-              radial-gradient(circle at 80% 0%, rgba(168,85,247,0.10), transparent 30%),
-              radial-gradient(circle at 50% 100%, rgba(20,184,166,0.08), transparent 34%),
-              #f6f8fb
-            `,
-          }}
-        />
-      </div>
-    );
-  }
 
   return (
     <AppShell>

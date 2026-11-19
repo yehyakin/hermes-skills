@@ -23,24 +23,18 @@ export default function LogsPage() {
   const [error, setError] = useState<string | null>(null);
   const [sseConnected, setSseConnected] = useState(false);
 
-  const fetchInitialLogs = async () => {
-    try {
-      const res = await fetch(`${API_BASE}/logs?limit=100`);
-      if (res.ok) {
-        const data = await res.json();
-        setInitialLogs(data.data.reverse()); // Oldest first for log viewer
-      } else {
-        setError("Failed to fetch logs");
-      }
-    } catch {
-      setError("Failed to connect to backend");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchInitialLogs();
+    fetch(`${API_BASE}/logs?limit=100`)
+      .then(async (res) => {
+        if (res.ok) {
+          const data = await res.json();
+          setInitialLogs(data.data.reverse()); // Oldest first for log viewer
+        } else {
+          setError("Failed to fetch logs");
+        }
+      })
+      .catch(() => setError("Failed to connect to backend"))
+      .finally(() => setLoading(false));
   }, []);
 
   useEffect(() => {

@@ -287,16 +287,19 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
 /* ── Clock (client-only, avoids hydration mismatch) ── */
 
-function Clock() {
-  const [time, setTime] = React.useState<string | null>(null);
+function subscribeToClock(notify: () => void) {
+  const id = setInterval(notify, 30000);
+  return () => clearInterval(id);
+}
 
-  React.useEffect(() => {
-    setTime(new Date().toLocaleTimeString("en", { hour: "2-digit", minute: "2-digit" }));
-    const id = setInterval(() => {
-      setTime(new Date().toLocaleTimeString("en", { hour: "2-digit", minute: "2-digit" }));
-    }, 30000);
-    return () => clearInterval(id);
-  }, []);
+function getClockSnapshot() {
+  return new Date().toLocaleTimeString("en", { hour: "2-digit", minute: "2-digit" });
+}
+
+const getServerClockSnapshot = () => "--:--";
+
+function Clock() {
+  const time = React.useSyncExternalStore(subscribeToClock, getClockSnapshot, getServerClockSnapshot);
 
   return (
     <span
@@ -306,7 +309,7 @@ function Clock() {
         fontFamily: "var(--font-mono)",
       }}
     >
-      {time ?? "--:--"}
+      {time}
     </span>
   );
 }

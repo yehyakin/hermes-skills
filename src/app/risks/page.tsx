@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { usePolling } from "@/usePolling";
 import { AppShell } from "@/components/AppShell";
 import RiskConfirmCard from "@/components/RiskConfirmCard";
 import { LightGlassPanel } from "@/components/liquid/LightGlassPanel";
@@ -77,11 +78,7 @@ export default function RisksPage() {
     }
   };
 
-  useEffect(() => {
-    fetchRisks();
-    const interval = setInterval(fetchRisks, 5000);
-    return () => clearInterval(interval);
-  }, []);
+  usePolling(fetchRisks, 5000);
 
   const handleConfirm = async (taskId: string) => {
     try {

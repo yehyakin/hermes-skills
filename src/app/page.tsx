@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
+import { usePolling } from "@/usePolling";
 import Link from "next/link";
 import { AppShell } from "@/components/AppShell";
 import { StatusPill } from "@/components/StatusPill";
@@ -258,11 +259,7 @@ export default function DashboardPage() {
     setLastSync(new Date());
   }, []);
 
-  useEffect(() => {
-    fetchAll();
-    const id = setInterval(fetchAll, 10000);
-    return () => clearInterval(id);
-  }, [fetchAll]);
+  usePolling(fetchAll, 10000);
 
   // ─── KPIs ──────────────────────────────────────────────────────────────────
 
