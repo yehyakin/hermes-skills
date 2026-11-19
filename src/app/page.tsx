@@ -540,8 +540,10 @@ export default function DashboardPage() {
               </div>
             ) : (
               tasks.slice(0, 10).map((task) => (
-                <div
+                <Link
                   key={task.id}
+                  href={`/tasks/${task.task_id}`}
+                  prefetch={false}
                   style={{
                     display: "grid",
                     gridTemplateColumns: "1fr 3fr 1.5fr 1fr 1fr 1fr",
@@ -550,6 +552,8 @@ export default function DashboardPage() {
                     fontSize: "14px",
                     alignItems: "center",
                     cursor: "pointer",
+                    color: "inherit",
+                    textDecoration: "none",
                     transition: "background-color 0.12s",
                   }}
                   onMouseEnter={(e) =>
@@ -559,9 +563,6 @@ export default function DashboardPage() {
                   onMouseLeave={(e) =>
                     ((e.currentTarget as HTMLElement).style.backgroundColor =
                       "transparent")
-                  }
-                  onClick={() =>
-                    (window.location.href = `/tasks/${task.task_id}`)
                   }
                 >
                   {/* ID */}
@@ -646,7 +647,7 @@ export default function DashboardPage() {
                       }}
                     />
                   </div>
-                </div>
+                </Link>
               ))
             )}
           </GlassPanel>
