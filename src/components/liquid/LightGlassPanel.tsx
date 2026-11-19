@@ -2,6 +2,7 @@
 
 import { ReactNode } from "react";
 import LiquidGlass from "liquid-glass-react";
+import styles from "./LightGlassPanel.module.css";
 
 // ─── DESIGN.md token-aligned Light Liquid Glass Panel ─────────────────────────
 // Powered by liquid-glass-react (iOS 26 physics-based refraction)
@@ -18,6 +19,7 @@ type Intensity = "low" | "medium" | "high";
 
 interface LightGlassPanelProps {
   title?: string;
+  bodyPadding?: string | number;
   rightElement?: ReactNode;
   children: ReactNode;
   style?: React.CSSProperties;
@@ -58,6 +60,7 @@ const HEADER_TOKENS = {
 
 export function LightGlassPanel({
   title,
+  bodyPadding,
   rightElement,
   children,
   style,
@@ -68,8 +71,10 @@ export function LightGlassPanel({
   const vb = VARIANT_BASE[variant] ?? VARIANT_BASE.panel;
   const im = INTENSITY_MULT[intensity] ?? INTENSITY_MULT.medium;
   return (
-    <div className={className} style={style}>
+    <div className={`${styles.surface} ${className}`} style={style}>
       <LiquidGlass
+        className={styles.panel}
+        padding="0"
         blurAmount={vb.blur * im.blur}
         displacementScale={vb.scale * im.scale}
         saturation={vb.sat * im.sat}
@@ -93,7 +98,7 @@ export function LightGlassPanel({
             {rightElement}
           </div>
         )}
-        <div>{children}</div>
+        <div style={{ padding: bodyPadding ?? (title ? "14px 18px" : 0) }}>{children}</div>
       </LiquidGlass>
     </div>
   );
@@ -111,8 +116,10 @@ interface GlassCardProps {
 
 export function GlassCard({ children, style, onClick }: GlassCardProps) {
   return (
-    <div style={style} onClick={onClick}>
+    <div className={styles.surface} style={style} onClick={onClick}>
       <LiquidGlass
+        className={styles.panel}
+        padding="0"
         blurAmount={0.02}
         displacementScale={25}
         saturation={120}
