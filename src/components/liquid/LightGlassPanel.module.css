@@ -1,0 +1,29 @@
+.surface {
+  position: relative;
+  min-width: 0;
+}
+
+.surface > div {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  transform: none !important;
+  pointer-events: none;
+}
+
+.surface > .panel {
+  position: relative !important;
+  width: 100%;
+  pointer-events: auto;
+}
+
+.panel > :global(.glass) {
+  display: block !important;
+  width: 100%;
+}
+
+.panel > :global(.glass) > div {
+  min-width: 0;
+  color: inherit;
+  font: inherit !important;
+}
