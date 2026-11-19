@@ -491,6 +491,7 @@ export default function DashboardPage() {
           {/* Recent Tasks */}
           <GlassPanel
             title="最近任务"
+            bodyPadding={0}
             rightElement={
               <Link
                 href="/tasks"

@@ -19,6 +19,7 @@ type Intensity = "low" | "medium" | "high";
 
 interface LightGlassPanelProps {
   title?: string;
+  bodyPadding?: string | number;
   rightElement?: ReactNode;
   children: ReactNode;
   style?: React.CSSProperties;
@@ -59,6 +60,7 @@ const HEADER_TOKENS = {
 
 export function LightGlassPanel({
   title,
+  bodyPadding,
   rightElement,
   children,
   style,
@@ -96,7 +98,7 @@ export function LightGlassPanel({
             {rightElement}
           </div>
         )}
-        <div>{children}</div>
+        <div style={{ padding: bodyPadding ?? (title ? "14px 18px" : 0) }}>{children}</div>
       </LiquidGlass>
     </div>
   );
